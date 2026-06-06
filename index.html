@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kontrol Arduino - INOTEK</title>
+    <style>
+        /* CSS untuk Desain Interface */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117; /* Tema Dark Mode ala GitHub */
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #58a6ff;
+        }
+
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #8b949e;
+            margin-bottom: 30px;
+        }
+
+        .status-box {
+            background-color: #21262d;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border: 1px solid #30363d;
+        }
+
+        .status-value {
+            font-weight: bold;
+            color: #2ea44f;
+        }
+
+        .button-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background-color: #30363d;
+            border-color: #8b949e;
+            transform: translateY(-2px);
+        }
+
+        button#btn-off {
+            border-color: #f85149;
+            color: #f85149;
+        }
+        button#btn-off:hover {
+            background-color: rgba(248, 81, 73, 0.1);
+        }
+
+        button.active {
+            background-color: #1f6feb;
+            border-color: #58a6ff;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Kontrol Rangkaian Arduino</h1>
+        <p class="subtitle">Proyek Akhir Inotek Web - Kolaborasi GitHub</p>
+
+        <div class="status-box">
+            Status Mode Aktif: <span id="status-mode" class="status-value">Memuat...</span>
+        </div>
+
+        <div class="button-grid">
+            <button id="btn-lalin">🚦 Lampu Lalu Lintas (Mode 1)</button>
+            <button id="btn-kedip">✨ Lampu Kedap-Kedip (Mode 2)</button>
+            <button id="btn-on">💡 Semua Lampu ON (Mode 3)</button>
+            <button id="btn-off">🔌 Semua Lampu OFF (Mode 4)</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        // Konfigurasi asli dari Firebase Console kamu
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGIaLgmGu47LbErldcTCKrX0gLPK6Ro1c",
+            authDomain: "project-akhir-inotek.firebaseapp.com",
+            databaseURL: "https://project-akhir-inotek-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "project-akhir-inotek",
+            storageBucket: "project-akhir-inotek.firebasestorage.app",
+            messagingSenderId: "2843637738",
+            appId: "1:2843637738:web:ca8bc6a7e4def79c4ba493",
+            measurementId: "G-VWS44JSYY4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const modeRef = ref(database, 'status_lampu'); 
+
+        // Fungsi kirim data berupa angka int (1, 2, 3, 4) ke Firebase
+        function ubahMode(nomorMode) {
+            set(modeRef, nomorMode)
+                .then(() => {
+                    console.log("Berhasil mengubah ke Mode " + nomorMode);
+                })
+                .catch((error) => {
+                    console.error("Gagal mengirim data: ", error);
+                });
+        }
+
+        const btnLalin = document.getElementById('btn-lalin');
+        const btnKedip = document.getElementById('btn-kedip');
+        const btnOn = document.getElementById('btn-on');
+        const btnOff = document.getElementById('btn-off');
+        const statusMode = document.getElementById('status-mode');
+
+        btnLalin.addEventListener('click', () => ubahMode(1));
+        btnKedip.addEventListener('click', () => ubahMode(2));
+        btnOn.addEventListener('click', () => ubahMode(3));
+        btnOff.addEventListener('click', () => ubahMode(4));
+
+        // Sinkronisasi data Firebase ke UI Website secara Realtime
+        onValue(modeRef, (snapshot) => {
+            const data = snapshot.val();
+            
+            [btnLalin, btnKedip, btnOn, btnOff].forEach(btn => btn.classList.remove('active'));
+
+            // Konversi ke string untuk percabangan UI
+            const dataStr = data ? data.toString() : "";
+
+            if (dataStr === "1") {
+                statusMode.innerText = "Lampu Lalu Lintas";
+                btnLalin.classList.add('active');
+            } else if (dataStr === "2") {
+                statusMode.innerText = "Lampu Kedap-Kedip";
+                btnKedip.classList.add('active');
+            } else if (dataStr === "3") {
+                statusMode.innerText = "Semua Lampu ON";
+                btnOn.classList.add('active');
+            } else if (dataStr === "4") {
+                statusMode.innerText = "Semua Lampu OFF";
+                btnOff.classList.add('active');
+            } else {
+                statusMode.innerText = "Tidak Diketahui (" + data + ")";
+            }
+        });
+    </script>
+</body>
+</html>
