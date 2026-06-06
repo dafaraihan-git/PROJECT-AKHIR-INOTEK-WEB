@@ -15,6 +15,8 @@ void setup()
   Serial.println("=== KONTROL LAMPU ===");
   Serial.println("1 = Lampu lalu lintas");
   Serial.println("2 = Lampu kedap-kedip");
+  Serial.println("3 = Semua lampu ON");
+  Serial.println("4 = Semua lampu OFF");
 }
 
 void loop()
@@ -64,5 +66,21 @@ void loop()
     digitalWrite(led_kuning, LOW);
     digitalWrite(led_hijau, LOW);
     delay(500);
+  }
+
+  // MODE 3 : Semua lampu ON
+  else if (mode == "3")
+  {
+    digitalWrite(led_merah, HIGH);
+    digitalWrite(led_kuning, HIGH);
+    digitalWrite(led_hijau, HIGH);
+  }
+
+  // MODE 4 : Semua lampu OFF
+  else if (mode == "4")
+  {
+    digitalWrite(led_merah, LOW);
+    digitalWrite(led_kuning, LOW);
+    digitalWrite(led_hijau, LOW);
   }
 }
